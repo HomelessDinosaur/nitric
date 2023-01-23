@@ -5,11 +5,19 @@ GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint
 endif
 GOLANGCI_LINT ?= GOLANGCI_LINT_CACHE=$(GOLANGCI_LINT_CACHE) go run github.com/golangci/golangci-lint/cmd/golangci-lint
 
-binaries: runtimebin
+binaries: deploybin
 
+# build runtime binary directly into the deploy director so it can be embedded directly into the deployment engine binary
 runtimebin:
 	@echo Building GCP Runtime Server
-	@CGO_ENABLED=0 go build -o bin/runtime-gcp -ldflags="-extldflags=-static" ./runtime/cmd
+	@CGO_ENABLED=0 go build -o deploy/runtime-gcp -ldflags="-extldflags=-static" ./runtime/cmd
+
+# FIXME: proto server registration error
+# There appears to be an old namespace conflict with the protobuf definitions
+deploybin: runtimebin
+	@echo Building GCP Deployment Server
+	@CGO_ENABLED=0 go build -o bin/deploy-gcp -ldflags="-extldflags=-static" -ldflags="-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" ./deploy/cmd
+	@rm deploy/runtime-gcp
 
 sourcefiles := $(shell find . -type f -name "*.go" -o -name "*.dockerfile")
 

@@ -24,6 +24,8 @@ else
         UNAME_P := $(findstring X86_64,$(shell uname -v))
         ifeq ($(UNAME_P),X86_64)
 	    PROTOC_PLATFORM := osx-x86_64
+        else
+        PROTOC_PLATFORM := osx-aarch_64
         endif
     endif
 endif
@@ -35,7 +37,7 @@ endif
 TOOLS_DIR := ./tools
 TOOLS_BIN := $(TOOLS_DIR)/bin
 
-PROTOC_VERSION := 3.19.1
+PROTOC_VERSION := 3.20.1
 PROTOC_RELEASES_PATH := https://github.com/protocolbuffers/protobuf/releases/download
 PROTOC_ZIP := protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
 PROTOC_DOWNLOAD := $(PROTOC_RELEASES_PATH)/v$(PROTOC_VERSION)/$(PROTOC_ZIP)
