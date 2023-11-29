@@ -105,13 +105,17 @@ func NewUpProgram(ctx context.Context, details *StackDetails, config *config.Gcp
 			return err
 		}
 
-		stackIdChan := make(chan string)
-		pulumi.Sprintf("%s-%s", ctx.Stack(), stackRandId.Result).ApplyT(func(id string) string {
-			stackIdChan <- id
-			return id
-		})
+		stackID := "stack-id"
 
-		stackID := <-stackIdChan
+		if !ctx.DryRun() {
+			stackIdChan := make(chan string)
+			pulumi.Sprintf("%s-%s", ctx.Stack(), stackRandId.Result).ApplyT(func(id string) string {
+				stackIdChan <- id
+				return id
+			})
+
+			stackID = <-stackIdChan
+		}
 
 		collections := lo.Filter[*deploy.Resource](spec.Resources, func(res *deploy.Resource, _ int) bool {
 			return res.Type == v1.ResourceType_Collection
