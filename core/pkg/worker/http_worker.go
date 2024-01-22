@@ -53,14 +53,24 @@ func (h *HttpWorker) HandleTrigger(ctx context.Context, req *v1.TriggerRequest) 
 		return nil, err
 	}
 
-	newHeader := http.Header{}
-
 	targetPath := targetHost.JoinPath(req.GetHttp().Path)
+
+	// Add the query params to the target path
+	q := targetPath.Query()
+	for k, v := range req.GetHttp().QueryParams {
+		for _, val := range v.Value {
+			q.Add(k, val)
+		}
+	}
+
+	targetPath.RawQuery = q.Encode()
+
 	httpReq, err := http.NewRequest(req.GetHttp().GetMethod(), targetPath.String(), io.NopCloser(bytes.NewReader(req.Data)))
 	if err != nil {
 		return nil, err
 	}
 
+	newHeader := http.Header{}
 	for k, v := range req.GetHttp().Headers {
 		for _, val := range v.Value {
 			// Replace forwarded authorization with base authorization so the user gets the expected headers
