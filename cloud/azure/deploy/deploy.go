@@ -255,6 +255,16 @@ func (a *NitricAzurePulumiProvider) Pre(ctx *pulumi.Context, nitricResources []*
 		}
 	}
 
+	// Unlike AWS and GCP which have centralized storage management, Azure allows for multiple storage accounts.
+	// This means we need to create a storage account for each stack, before key value stores can be created.
+	if hasResourceType(nitricResources, resourcespb.ResourceType_KeyValueStore) && a.storageAccount == nil {
+		logger.Info("Stack declares one or more key value store, creating stack level Azure Storage Account")
+		a.storageAccount, err = createStorageAccount(ctx, a.resourceGroup, tags.Tags(a.stackId, ctx.Stack(), commonresources.Stack))
+		if err != nil {
+			return errors.WithMessage(err, "storage account create")
+		}
+	}
+
 	a.containerEnv, err = a.newContainerEnv(ctx, a.stackId, map[string]string{})
 	if err != nil {
 		return err
