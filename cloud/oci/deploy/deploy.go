@@ -55,7 +55,7 @@ type NitricOCIPulumiProvider struct {
 
 	subnet *core.Subnet
 
-	apis      map[string]*apigateway.Api
+	apis      map[string]*apigateway.Deployment
 	functions map[string]*functions.Function
 
 	provider.NitricDefaultOrder
@@ -136,7 +136,7 @@ func (a *NitricOCIPulumiProvider) Pre(ctx *pulumi.Context, resources []*pulumix.
 		return fmt.Errorf("error getting user: %v", err)
 	}
 
-	cidrBlock := "10.0.1.0/24"
+	cidrBlock := "10.0.0.0/16"
 
 	vcnName := fmt.Sprintf("vcn-%s", a.stackId)
 
@@ -225,6 +225,6 @@ func (a *NitricOCIPulumiProvider) Result(ctx *pulumi.Context) (pulumi.StringOutp
 func NewNitricOCIPulumiProvider() *NitricOCIPulumiProvider {
 	return &NitricOCIPulumiProvider{
 		functions: make(map[string]*functions.Function),
-		apis:      make(map[string]*apigateway.Api),
+		apis:      make(map[string]*apigateway.Deployment),
 	}
 }
