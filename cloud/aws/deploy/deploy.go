@@ -28,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda/lambdaiface"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
 	"github.com/nitrictech/nitric/cloud/aws/common"
+	"github.com/nitrictech/nitric/cloud/aws/deploy/embeds"
 	"github.com/nitrictech/nitric/cloud/common/deploy"
 	"github.com/nitrictech/nitric/cloud/common/deploy/provider"
 	"github.com/nitrictech/nitric/cloud/common/deploy/pulumix"
@@ -177,6 +178,108 @@ func (a *NitricAwsPulumiProvider) Pre(ctx *pulumi.Context, resources []*pulumix.
 
 		// deploy the RDS cluster
 		err = a.rds(ctx)
+		if err != nil {
+			return err
+		}
+
+		role, err := iam.NewRole(ctx, "codeBuildRole", &iam.RoleArgs{
+			AssumeRolePolicy: pulumi.String(`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Action": "sts:AssumeRole",
+						"Principal": {
+							"Service": "codebuild.amazonaws.com"
+						},
+						"Effect": "Allow",
+						"Sid": ""
+					}
+				]
+			}`),
+		})
+		if err != nil {
+			return err
+		}
+
+		codebuildManagedPolicies := map[string]iam.ManagedPolicy{
+			"codeBuildAdmin": iam.ManagedPolicyAWSCodeBuildAdminAccess,
+			"rdsAdmin":       iam.ManagedPolicyAmazonRDSFullAccess,
+			"ec2Admin":       iam.ManagedPolicyAmazonEC2FullAccess,
+			"cloudWatchLogs": iam.ManagedPolicyCloudWatchLogsFullAccess,
+		}
+
+		for name, policy := range codebuildManagedPolicies {
+			_, err = iam.NewRolePolicyAttachment(ctx, name+"PolicyAttachment", &iam.RolePolicyAttachmentArgs{
+				Role:      role.Name,
+				PolicyArn: policy,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Attach the AWSCodeBuildDeveloperAccess policy to the role
+		_, err = iam.NewRolePolicyAttachment(ctx, "codeBuildPolicyAttachment", &iam.RolePolicyAttachmentArgs{
+			Role:      role.Name,
+			PolicyArn: iam.ManagedPolicyAWSCodeBuildAdminAccess,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Attach the VPC access policy to the role
+		_, err = iam.NewRolePolicyAttachment(ctx, "codeBuildRdsPolicyAttachment", &iam.RolePolicyAttachmentArgs{
+			Role:      role.Name,
+			PolicyArn: iam.ManagedPolicyAmazonRDSFullAccess,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Attach the VPC access policy to the role
+		_, err = iam.NewRolePolicyAttachment(ctx, "codeBuildEc2PolicyAttachment", &iam.RolePolicyAttachmentArgs{
+			Role:      role.Name,
+			PolicyArn: iam.ManagedPolicyAmazonEC2FullAccess,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Use a codebuild project to create the databases within the cluster
+		a.CreateDatabaseProject, err = codebuild.NewProject(ctx, "create-nitric-databases", &codebuild.ProjectArgs{
+			Artifacts: &codebuild.ProjectArtifactsArgs{
+				Type: pulumi.String("NO_ARTIFACTS"),
+			},
+			Environment: &codebuild.ProjectEnvironmentArgs{
+				ComputeType: pulumi.String("BUILD_GENERAL1_SMALL"),
+				Image:       pulumi.String("aws/codebuild/standard:4.0"),
+				Type:        pulumi.String("LINUX_CONTAINER"),
+				EnvironmentVariables: codebuild.ProjectEnvironmentEnvironmentVariableArray{
+					&codebuild.ProjectEnvironmentEnvironmentVariableArgs{
+						Name:  pulumi.String("DB_CLUSTER_ENDPOINT"),
+						Value: a.DatabaseCluster.Endpoint,
+					},
+					&codebuild.ProjectEnvironmentEnvironmentVariableArgs{
+						Name:  pulumi.String("DB_MASTER_USERNAME"),
+						Value: pulumi.String("nitric"),
+					},
+					&codebuild.ProjectEnvironmentEnvironmentVariableArgs{
+						Name:  pulumi.String("DB_MASTER_PASSWORD"),
+						Value: dbMasterPassword.Result,
+					},
+				},
+			},
+			ServiceRole: role.Arn,
+			Source: &codebuild.ProjectSourceArgs{
+				Type:      pulumi.String("NO_SOURCE"),
+				Buildspec: embeds.GetCodeBuildCreateDatabaseConfig(),
+			},
+			VpcConfig: &codebuild.ProjectVpcConfigArgs{
+				SecurityGroupIds: a.DatabaseCluster.VpcSecurityGroupIds,
+				Subnets:          a.Vpc.PrivateSubnetIds,
+				VpcId:            a.Vpc.VpcId,
+			},
+		})
 		if err != nil {
 			return err
 		}
