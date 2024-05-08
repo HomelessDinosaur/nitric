@@ -178,6 +178,13 @@ func (p *NitricGcpPulumiProvider) Service(ctx *pulumi.Context, parent pulumi.Res
 		})
 	}
 
+	if p.MasterDb != nil {
+		env = append(env, cloudrun.ServiceTemplateSpecContainerEnvArgs{
+			Name:  pulumi.String("NITRIC_DATABASE_BASE_URL"),
+			Value: pulumi.Sprintf("postgres://%s:%s@%s:%s", "root", p.DbMasterPassword.Result, p.MasterDb.PublicIpAddress, "5432"),
+		})
+	}
+
 	for k, v := range config.Env() {
 		env = append(env, cloudrun.ServiceTemplateSpecContainerEnvArgs{
 			Name:  pulumi.String(k),

@@ -39,7 +39,9 @@ import (
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/projects"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/pubsub"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/secretmanager"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/sql"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/storage"
+	cloudbuild "github.com/pulumi/pulumi-google-native/sdk/go/google/cloudbuild/v1"
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -72,6 +74,10 @@ type NitricGcpPulumiProvider struct {
 	Queues             map[string]*pubsub.Topic
 	QueueSubscriptions map[string]*pubsub.Subscription
 	Secrets            map[string]*secretmanager.Secret
+
+	MasterDb               *sql.DatabaseInstance
+	DbMasterPassword       *random.RandomPassword
+	DatabaseMigrationBuild map[string]*cloudbuild.Build
 
 	provider.NitricDefaultOrder
 }
@@ -229,6 +235,19 @@ func (a *NitricGcpPulumiProvider) Pre(ctx *pulumi.Context, resources []*pulumix.
 		}
 	}
 
+	// Check if a sql database exists, if so get/create a nitric cloud sql database
+	databaseExists := lo.SomeBy(resources, func(res *pulumix.NitricPulumiResource[any]) bool {
+		_, ok := res.Config.(*deploymentspb.Resource_SqlDatabase)
+		return ok
+	})
+
+	if databaseExists {
+		err := a.createCloudSQLDatabase(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -318,7 +337,7 @@ func (a *NitricGcpPulumiProvider) Result(ctx *pulumi.Context) (pulumi.StringOutp
 	}).(pulumi.StringOutput)
 
 	if !ok {
-		return pulumi.StringOutput{}, fmt.Errorf("Failed to generate pulumi output")
+		return pulumi.StringOutput{}, fmt.Errorf("failed to generate pulumi output")
 	}
 
 	return output, nil
@@ -326,14 +345,15 @@ func (a *NitricGcpPulumiProvider) Result(ctx *pulumi.Context) (pulumi.StringOutp
 
 func NewNitricGcpProvider() *NitricGcpPulumiProvider {
 	return &NitricGcpPulumiProvider{
-		HttpProxies:        make(map[string]*apigateway.Gateway),
-		ApiGateways:        make(map[string]*apigateway.Gateway),
-		CloudRunServices:   make(map[string]*NitricCloudRunService),
-		Buckets:            make(map[string]*storage.Bucket),
-		Topics:             make(map[string]*pubsub.Topic),
-		Queues:             make(map[string]*pubsub.Topic),
-		QueueSubscriptions: make(map[string]*pubsub.Subscription),
-		Secrets:            make(map[string]*secretmanager.Secret),
+		HttpProxies:            make(map[string]*apigateway.Gateway),
+		ApiGateways:            make(map[string]*apigateway.Gateway),
+		CloudRunServices:       make(map[string]*NitricCloudRunService),
+		Buckets:                make(map[string]*storage.Bucket),
+		Topics:                 make(map[string]*pubsub.Topic),
+		Queues:                 make(map[string]*pubsub.Topic),
+		QueueSubscriptions:     make(map[string]*pubsub.Subscription),
+		Secrets:                make(map[string]*secretmanager.Secret),
+		DatabaseMigrationBuild: make(map[string]*cloudbuild.Build),
 	}
 }
 
@@ -364,6 +384,37 @@ func createFirestoreDatabase(ctx *pulumi.Context, projectId string, location str
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (a *NitricGcpPulumiProvider) createCloudSQLDatabase(ctx *pulumi.Context) error {
+	var err error
+
+	// generate a db cluster random password
+	a.DbMasterPassword, err = random.NewRandomPassword(ctx, "db-master-password", &random.RandomPasswordArgs{
+		Length:  pulumi.Int(16),
+		Special: pulumi.Bool(false),
+	})
+	if err != nil {
+		return err
+	}
+
+	dbName := fmt.Sprintf("nitric-%s", a.StackId)
+
+	a.MasterDb, err = sql.NewDatabaseInstance(ctx, dbName, &sql.DatabaseInstanceArgs{
+		Name:            pulumi.String(dbName),
+		DatabaseVersion: pulumi.String("POSTGRES_13"),
+		InstanceType:    pulumi.String("CLOUD_SQL_INSTANCE"),
+		Region:          pulumi.String(a.Region),
+		Settings: &sql.DatabaseInstanceSettingsArgs{
+			Tier: pulumi.String("db-f1-micro"),
+		},
+		RootPassword: a.DbMasterPassword.Result,
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
