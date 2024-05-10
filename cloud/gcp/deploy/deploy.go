@@ -85,13 +85,17 @@ type NitricGcpPulumiProvider struct {
 var _ provider.NitricPulumiProvider = (*NitricGcpPulumiProvider)(nil)
 
 const pulumiGcpVersion = "6.67.0"
+const pulumiGoogleNativeVersion = "0.32.0"
 
 func (a *NitricGcpPulumiProvider) Config() (auto.ConfigMap, error) {
 	return auto.ConfigMap{
-		"gcp:region":     auto.ConfigValue{Value: a.Region},
-		"gcp:project":    auto.ConfigValue{Value: a.GcpConfig.ProjectId},
-		"gcp:version":    auto.ConfigValue{Value: pulumiGcpVersion},
-		"docker:version": auto.ConfigValue{Value: deploy.PulumiDockerVersion},
+		"gcp:region":            auto.ConfigValue{Value: a.Region},
+		"gcp:project":           auto.ConfigValue{Value: a.GcpConfig.ProjectId},
+		"gcp:version":           auto.ConfigValue{Value: pulumiGcpVersion},
+		"google-native:version": auto.ConfigValue{Value: pulumiGoogleNativeVersion},
+		"google-native:region":  auto.ConfigValue{Value: a.Region},
+		"google-native:project": auto.ConfigValue{Value: a.GcpConfig.ProjectId},
+		"docker:version":        auto.ConfigValue{Value: deploy.PulumiDockerVersion},
 	}, nil
 }
 
@@ -411,7 +415,8 @@ func (a *NitricGcpPulumiProvider) createCloudSQLDatabase(ctx *pulumi.Context) er
 		Settings: &sql.DatabaseInstanceSettingsArgs{
 			Tier: pulumi.String("db-f1-micro"),
 		},
-		RootPassword: a.DbMasterPassword.Result,
+		RootPassword:       a.DbMasterPassword.Result,
+		DeletionProtection: pulumi.Bool(false),
 	})
 	if err != nil {
 		return err

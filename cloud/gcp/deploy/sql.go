@@ -17,6 +17,7 @@
 package deploy
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/nitrictech/nitric/cloud/common/deploy/image"
@@ -44,22 +45,23 @@ func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi
 
 	databaseUrl := pulumi.Sprintf("postgres://%s:%s@%s:%s/%s", "root", a.DbMasterPassword.Result, a.MasterDb.PublicIpAddress, "5432", name)
 
-	steps := []interface{}{}
-
-	steps = append(steps, cloudbuild.BuildStepArgs{
-		Env: pulumi.ToStringArray([]string{
-			"DB_MASTER_ENDPOINT=${_DATABASE_HOST}",
-			"DB_MASTER_USERNAME=${_DATABASE_USER}",
-			"DB_MASTER_DATABASE_NAME=${_MASTER_DATABASE_NAME}",
-			"DB_NAME=${_DATABASE_NAME}",
-			"PGPASSWORD=${_DATABASE_PASSWORD}",
-		}),
-		Entrypoint: pulumi.String("bash"),
-		Args: pulumi.ToStringArray([]string{
-			"-c",
-			embeds.GetCloudBuildCreateDatabaseConfig(),
-		}),
-	})
+	steps := cloudbuild.BuildStepArray{
+		cloudbuild.BuildStepArgs{
+			Name: pulumi.String("gcr.io/cloud-builders/git"),
+			Env: pulumi.ToStringArray([]string{
+				"DB_MASTER_ENDPOINT=${_DATABASE_HOST}",
+				"DB_MASTER_USERNAME=${_DATABASE_USER}",
+				"DB_MASTER_DATABASE_NAME=${_MASTER_DATABASE_NAME}",
+				"DB_NAME=${_DATABASE_NAME}",
+				"PGPASSWORD=${_DATABASE_PASSWORD}",
+			}),
+			Entrypoint: pulumi.String("bash"),
+			Args: pulumi.ToStringArray([]string{
+				"-c",
+				embeds.GetCloudBuildCreateDatabaseConfig(),
+			}),
+		},
+	}
 
 	// If there is a migration, then add a step to run the migration image
 	if config.GetImageUri() != "" && a.DatabaseMigrationBuild[name] == nil {
@@ -73,20 +75,9 @@ func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi
 		})
 	}
 
-	cloudbuildSteps := pulumi.All(steps...).ApplyT(func(steps []interface{}) []*cloudbuild.BuildStepArgs {
-		build := make([]*cloudbuild.BuildStepArgs, 0)
-		for _, step := range steps {
-			build = append(build, step.(*cloudbuild.BuildStepArgs))
-		}
-		return build
-	}).(cloudbuild.BuildStepArrayOutput)
-	if err != nil {
-		return err
-	}
-
-	a.DatabaseMigrationBuild[name], err = cloudbuild.NewBuild(ctx, name, &cloudbuild.BuildArgs{
-		Artifacts: &cloudbuild.ArtifactsArgs{},
+	a.DatabaseMigrationBuild[name], err = cloudbuild.NewBuild(ctx, fmt.Sprintf("%s-build", name), &cloudbuild.BuildArgs{
 		Location:  pulumi.String(a.Region),
+		ProjectId: pulumi.String(a.GcpConfig.ProjectId),
 		Substitutions: pulumi.StringMap{
 			"_DATABASE_HOST":        a.MasterDb.PublicIpAddress,
 			"_DATABASE_USER":        pulumi.String("root"),
@@ -95,8 +86,8 @@ func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi
 			"_DATABASE_PASSWORD":    a.DbMasterPassword.Result,
 			"_DATABASE_URL":         databaseUrl,
 		},
-		Steps: cloudbuildSteps,
-	})
+		Steps: steps,
+	}, pulumi.DependsOn([]pulumi.Resource{a.MasterDb, image}))
 	if err != nil {
 		return err
 	}
