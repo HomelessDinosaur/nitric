@@ -76,7 +76,7 @@ func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi
 	}
 
 	a.DatabaseMigrationBuild[name], err = cloudbuild.NewBuild(ctx, fmt.Sprintf("%s-build", name), &cloudbuild.BuildArgs{
-		Location:  pulumi.String(a.Region),
+		Location:  pulumi.String("global"),
 		ProjectId: pulumi.String(a.GcpConfig.ProjectId),
 		Substitutions: pulumi.StringMap{
 			"_DATABASE_HOST":        a.MasterDb.PublicIpAddress,
