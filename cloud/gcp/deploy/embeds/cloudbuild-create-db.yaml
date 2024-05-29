@@ -1,2 +1,0 @@
-apk --no-cache add postgresql13-client
-psql -h ${DB_MASTER_ENDPOINT} -U ${DB_MASTER_USERNAME} -d ${DB_MASTER_DATABASE_NAME} -c "CREATE DATABASE ${DB_NAME}" || echo "database ${DB_NAME} already exists"

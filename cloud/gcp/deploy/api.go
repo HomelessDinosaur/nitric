@@ -31,7 +31,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/pkg/errors"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/apigateway"
-	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudrun"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/cloudrunv2"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 
 	common "github.com/nitrictech/nitric/cloud/common/deploy/tags"
@@ -192,8 +192,8 @@ func (p *NitricGcpPulumiProvider) Api(ctx *pulumi.Context, parent pulumi.Resourc
 	for _, serv := range services {
 		iamName := fmt.Sprintf("%s-%s-binding", name, serv.Name)
 
-		_, err = cloudrun.NewIamMember(ctx, iamName, &cloudrun.IamMemberArgs{
-			Service:  serv.Service.Name,
+		_, err = cloudrunv2.NewServiceIamMember(ctx, iamName, &cloudrunv2.ServiceIamMemberArgs{
+			Name:     serv.Service.Name,
 			Location: serv.Service.Location,
 			Member:   pulumi.Sprintf("serviceAccount:%s", svcAcct.ServiceAccount.Email),
 			Role:     pulumi.String("roles/run.invoker"),

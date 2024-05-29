@@ -23,8 +23,10 @@ func (s *CloudSqlService) ConnectionString(ctx context.Context, req *sqlpb.SqlCo
 		return nil, status.Error(codes.FailedPrecondition, "NITRIC_DATABASE_BASE_URL environment variable not set")
 	}
 
+	connectionString := fmt.Sprintf("%s/%s", baseUrl, req.DatabaseName)
+
 	return &sqlpb.SqlConnectionStringResponse{
-		ConnectionString: fmt.Sprintf("%s/%s", baseUrl, req.DatabaseName),
+		ConnectionString: connectionString,
 	}, nil
 }
 
