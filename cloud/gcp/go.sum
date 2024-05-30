@@ -31,6 +31,8 @@ cloud.google.com/go/bigquery v1.4.0/go.mod h1:S8dzgnTigyfTmLBfrtrhyYhwRxG72rYxvf
 cloud.google.com/go/bigquery v1.5.0/go.mod h1:snEHRnqQbz117VIFhE8bmtwIDY80NLUZUMb4Nv6dBIg=
 cloud.google.com/go/bigquery v1.7.0/go.mod h1://okPTzCYNXSlb24MZs83e2Do+h+VXtc4gLoIoXIAPc=
 cloud.google.com/go/bigquery v1.8.0/go.mod h1:J5hqkt3O0uAFnINi6JXValWIb1v0goeZM77hZzJN/fQ=
+cloud.google.com/go/cloudbuild v1.16.1 h1:zkCG1dBezxRM3dtgQ9h1Y+IJ7V+lARWgp0l9k/SZsfU=
+cloud.google.com/go/cloudbuild v1.16.1/go.mod h1:c2KUANTtCBD8AsRavpPout6Vx8W+fsn5zTsWxCpWgq4=
 cloud.google.com/go/cloudtasks v1.12.7 h1:Ev+poxwb7pudBhiF0ObwAWT7Dh9BZAcsvAfFTWg0MPc=
 cloud.google.com/go/cloudtasks v1.12.7/go.mod h1:I6o/ggPK/RvvokBuUppsbmm4hrGouzFbf6fShIm0Pqc=
 cloud.google.com/go/compute/metadata v0.3.0 h1:Tz+eQXMEqDIKRsmY3cHTL6FVaynIjX2QxYC4trgAKZc=
@@ -692,8 +694,6 @@ github.com/pulumi/pulumi-docker/sdk/v4 v4.1.0 h1:ONchALtJZs0usvRryQ2aIelS/2X/z0b
 github.com/pulumi/pulumi-docker/sdk/v4 v4.1.0/go.mod h1:zZCDXSO99WbbrmsijAZkLQIdwkQYG8YaxDbq+wzzhn0=
 github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1 h1:PUH/sUbJmBmHjNFNthJ/dW2+riFuJV0FhrGAwuUuRIg=
 github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1/go.mod h1:OmZeji3dNMwB1qldAlaQfcfJPc2BaZyweVGH7Ej4SJg=
-github.com/pulumi/pulumi-google-native/sdk v0.32.0 h1:QrHaP6jJGCnJbjfgEnMNtX6Y2rNwy97H+afrDbk80co=
-github.com/pulumi/pulumi-google-native/sdk v0.32.0/go.mod h1:7VXK3f8iBB1fyj2ZAWPPNR80BWuXnqqRtgDoPJCVKqU=
 github.com/pulumi/pulumi-random/sdk/v4 v4.8.2 h1:ZlXB3mx1YvAjs+jm59rcpvfl1J7dpLOBOxUb5vEPkZk=
 github.com/pulumi/pulumi-random/sdk/v4 v4.8.2/go.mod h1:czSwj+jZnn/VWovMpTLUs/RL/ZS4PFHRdmlXrkvHqeI=
 github.com/pulumi/pulumi/sdk/v3 v3.114.0 h1:KPBSvm04wE2/AdS8PlABxZAW4o7pSAnar0QOooH13no=

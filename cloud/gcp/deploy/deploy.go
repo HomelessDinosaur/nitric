@@ -24,6 +24,7 @@ import (
 
 	_ "embed"
 
+	cloudbuild "cloud.google.com/go/cloudbuild/apiv1/v2"
 	apiv1 "cloud.google.com/go/firestore/apiv1/admin"
 	"cloud.google.com/go/firestore/apiv1/admin/adminpb"
 	gcpsecretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -44,7 +45,6 @@ import (
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/servicenetworking"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/sql"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/storage"
-	cloudbuild "github.com/pulumi/pulumi-google-native/sdk/go/google/cloudbuild/v1"
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -77,7 +77,7 @@ type NitricGcpPulumiProvider struct {
 	Queues                 map[string]*pubsub.Topic
 	QueueSubscriptions     map[string]*pubsub.Subscription
 	Secrets                map[string]*secretmanager.Secret
-	DatabaseMigrationBuild map[string]*cloudbuild.Build
+	DatabaseMigrationBuild map[string]*cloudbuild.CreateBuildOperation
 
 	masterDb             *sql.DatabaseInstance
 	dbMasterPassword     *random.RandomPassword
@@ -95,13 +95,10 @@ const pulumiGoogleNativeVersion = "0.32.0"
 
 func (a *NitricGcpPulumiProvider) Config() (auto.ConfigMap, error) {
 	return auto.ConfigMap{
-		"gcp:region":            auto.ConfigValue{Value: a.Region},
-		"gcp:project":           auto.ConfigValue{Value: a.GcpConfig.ProjectId},
-		"gcp:version":           auto.ConfigValue{Value: pulumiGcpVersion},
-		"google-native:version": auto.ConfigValue{Value: pulumiGoogleNativeVersion},
-		"google-native:region":  auto.ConfigValue{Value: a.Region},
-		"google-native:project": auto.ConfigValue{Value: a.GcpConfig.ProjectId},
-		"docker:version":        auto.ConfigValue{Value: deploy.PulumiDockerVersion},
+		"gcp:region":     auto.ConfigValue{Value: a.Region},
+		"gcp:project":    auto.ConfigValue{Value: a.GcpConfig.ProjectId},
+		"gcp:version":    auto.ConfigValue{Value: pulumiGcpVersion},
+		"docker:version": auto.ConfigValue{Value: deploy.PulumiDockerVersion},
 	}, nil
 }
 
@@ -363,7 +360,7 @@ func NewNitricGcpProvider() *NitricGcpPulumiProvider {
 		Queues:                 make(map[string]*pubsub.Topic),
 		QueueSubscriptions:     make(map[string]*pubsub.Subscription),
 		Secrets:                make(map[string]*secretmanager.Secret),
-		DatabaseMigrationBuild: make(map[string]*cloudbuild.Build),
+		DatabaseMigrationBuild: make(map[string]*cloudbuild.CreateBuildOperation),
 	}
 }
 

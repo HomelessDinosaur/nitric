@@ -31,7 +31,6 @@ require (
 	github.com/onsi/gomega v1.28.1
 	github.com/pkg/errors v0.9.1
 	github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1
-	github.com/pulumi/pulumi-google-native/sdk v0.32.0
 	github.com/pulumi/pulumi/sdk/v3 v3.114.0
 	github.com/samber/lo v1.38.1
 	github.com/uw-labs/lichen v0.1.7
@@ -93,6 +92,7 @@ require (
 	cloud.google.com/go v0.112.2 // indirect
 	cloud.google.com/go/auth v0.3.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
+	cloud.google.com/go/cloudbuild v1.16.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/longrunning v0.5.6 // indirect
