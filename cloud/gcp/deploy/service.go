@@ -219,21 +219,21 @@ func (p *NitricGcpPulumiProvider) Service(ctx *pulumi.Context, parent pulumi.Res
 	}
 
 	// Add vpc egress if there is a sql database
-	// if p.masterDb != nil {
-	// 	serviceTemplate.VpcAccess = &cloudrunv2.ServiceTemplateVpcAccessArgs{
-	// 		Egress: pulumi.String("PRIVATE_RANGES_ONLY"),
-	// 		NetworkInterfaces: &cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArray{
-	// 			&cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArgs{
-	// 				Network:    p.privateNetwork.ID(),
-	// 				Subnetwork: p.privateSubnet.ID(),
-	// 			},
-	// 		},
-	// 	}
+	if p.masterDb != nil {
+		serviceTemplate.VpcAccess = &cloudrunv2.ServiceTemplateVpcAccessArgs{
+			Egress: pulumi.String("PRIVATE_RANGES_ONLY"),
+			NetworkInterfaces: &cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArray{
+				&cloudrunv2.ServiceTemplateVpcAccessNetworkInterfaceArgs{
+					Network:    p.privateNetwork.ID(),
+					Subnetwork: p.privateSubnet.ID(),
+				},
+			},
+		}
 
-	// 	opts = append(opts, pulumi.DependsOn([]pulumi.Resource{p.privateNetwork, p.privateSubnet}))
+		opts = append(opts, pulumi.DependsOn([]pulumi.Resource{p.privateNetwork, p.privateSubnet}))
 
-	// 	serviceTemplate.Annotations = pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{"run.googleapis.com/cloudsql-instances": p.masterDb.ConnectionName})
-	// }
+		serviceTemplate.Annotations = pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{"run.googleapis.com/cloudsql-instances": p.masterDb.ConnectionName})
+	}
 
 	res.Service, err = cloudrunv2.NewService(ctx, gcpServiceName, &cloudrunv2.ServiceArgs{
 		Location: pulumi.String(p.Region),

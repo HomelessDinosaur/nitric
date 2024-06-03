@@ -20,11 +20,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	cloudbuild "cloud.google.com/go/cloudbuild/apiv1/v2"
 	"cloud.google.com/go/cloudbuild/apiv1/v2/cloudbuildpb"
-	"github.com/avast/retry-go"
 	"github.com/nitrictech/nitric/cloud/common/deploy/image"
 	deploymentspb "github.com/nitrictech/nitric/core/pkg/proto/deployments/v1"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/sql"
@@ -33,11 +31,17 @@ import (
 	"google.golang.org/api/option"
 )
 
-func checkBuildStatus(ctx context.Context, build *cloudbuild.CreateBuildOperation) func() error {
-	return func() error {
-		_, err := build.Poll(ctx)
-		return err
+func checkBuildStatus(ctx context.Context, build *cloudbuild.CreateBuildOperation) error {
+	_, err := build.Wait(ctx)
+	if build.Done() && err != nil {
+		return fmt.Errorf("cloudbuild job %s failed", build.Name())
 	}
+
+	if build.Done() && err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("polling failed for %s", build.Name())
 }
 
 func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi.Resource, name string, config *deploymentspb.SqlDatabase) error {
@@ -66,63 +70,66 @@ func (a *NitricGcpPulumiProvider) SqlDatabase(ctx *pulumi.Context, parent pulumi
 		return err
 	}
 
-	creds, err := google.FindDefaultCredentials(ctx.Context())
-	if err != nil {
-		return err
-	}
+	if a.DatabaseMigrationBuild[name] == nil && config.GetImageUri() != "" {
+		creds, err := google.FindDefaultCredentials(ctx.Context())
+		if err != nil {
+			return err
+		}
 
-	client, err := cloudbuild.NewClient(ctx.Context(), option.WithCredentials(creds))
-	if err != nil {
-		return err
-	}
+		client, err := cloudbuild.NewClient(ctx.Context(), option.WithCredentials(creds), option.WithQuotaProject(a.GcpConfig.ProjectId))
+		if err != nil {
+			return err
+		}
 
-	defer client.Close()
+		databaseUrl := pulumi.Sprintf("postgres://%s:%s@%s:%s/%s", "postgres", a.dbMasterPassword.Result, a.masterDb.PrivateIpAddress, "5432", name)
 
-	databaseUrl := pulumi.Sprintf("postgres://%s:%s@%s:%s/%s", "postgres", a.dbMasterPassword.Result, a.masterDb.PrivateIpAddress, "5432", name)
+		buildId := pulumi.All(databaseUrl, a.cloudBuildWorkerPool.ID().ToStringOutput(), image.URI()).ApplyT(func(args []interface{}) (string, error) {
+			url := args[0].(string)
+			workerPoolId := args[1].(string)
+			imageUri := args[2].(string)
 
-	pulumi.All(databaseUrl, a.cloudBuildWorkerPool.ID().ToStringOutput(), image.URI()).ApplyT(func(args []interface{}) (bool, error) {
-		url := args[0].(string)
-		workerPoolId := args[1].(string)
-		imageUri := args[2].(string)
-
-		build, err := client.CreateBuild(ctx.Context(), &cloudbuildpb.CreateBuildRequest{
-			Parent:    fmt.Sprintf("projects/%s/locations/%s", a.GcpConfig.ProjectId, a.Region),
-			ProjectId: a.GcpConfig.ProjectId,
-			Build: &cloudbuildpb.Build{
-				Substitutions: map[string]string{
-					"_DATABASE_NAME": name,
-					"_DATABASE_URL":  url,
-				},
-				Steps: []*cloudbuildpb.BuildStep{
-					{
-						Name: imageUri,
-						Dir:  "/",
-						Env: []string{
-							"NITRIC_DB_NAME=${_DATABASE_NAME}",
-							"DB_URL=${_DATABASE_URL}",
+			build, err := client.CreateBuild(ctx.Context(), &cloudbuildpb.CreateBuildRequest{
+				Parent:    fmt.Sprintf("projects/%s/locations/%s", a.GcpConfig.ProjectId, a.Region),
+				ProjectId: a.GcpConfig.ProjectId,
+				Build: &cloudbuildpb.Build{
+					Name: imageUri,
+					Substitutions: map[string]string{
+						"_DATABASE_NAME": name,
+						"_DATABASE_URL":  url,
+					},
+					Steps: []*cloudbuildpb.BuildStep{
+						{
+							Name: imageUri,
+							Dir:  "/",
+							Env: []string{
+								"NITRIC_DB_NAME=${_DATABASE_NAME}",
+								"DB_URL=${_DATABASE_URL}",
+							},
+						},
+					},
+					Options: &cloudbuildpb.BuildOptions{
+						Pool: &cloudbuildpb.BuildOptions_PoolOption{
+							Name: workerPoolId,
 						},
 					},
 				},
-				Options: &cloudbuildpb.BuildOptions{
-					Pool: &cloudbuildpb.BuildOptions_PoolOption{
-						Name: workerPoolId,
-					},
-				},
-			},
-		})
-		if err != nil {
-			return false, err
-		}
+			})
+			if err != nil {
+				return "", fmt.Errorf("error creating build for db %s: %v", name, err)
+			}
 
-		err = retry.Do(checkBuildStatus(ctx.Context(), build), retry.Attempts(10), retry.Delay(time.Second*15))
-		if err != nil {
-			return false, err
-		}
+			err = checkBuildStatus(context.TODO(), build)
+			if err != nil {
+				return "", fmt.Errorf("error creating build for db %s: %v", name, err)
+			}
 
-		a.DatabaseMigrationBuild[name] = build
+			client.Close()
 
-		return true, nil
-	})
+			return build.Name(), nil
+		}).(pulumi.StringOutput)
+
+		a.DatabaseMigrationBuild[name] = &buildId
+	}
 
 	return nil
 }
