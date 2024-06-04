@@ -42,9 +42,11 @@ import (
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/pubsub"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/secretmanager"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/servicenetworking"
+	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/serviceusage"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/sql"
 	"github.com/pulumi/pulumi-gcp/sdk/v6/go/gcp/storage"
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
+	"github.com/pulumi/pulumi-std/sdk/go/std"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/samber/lo"
@@ -454,6 +456,35 @@ func (a *NitricGcpPulumiProvider) createCloudSQLDatabase(ctx *pulumi.Context) er
 		return err
 	}
 
+	metricUrlEncode, err := std.Urlencode(ctx, &std.UrlencodeArgs{
+		Input: "cloudbuild.googleapis.com/private_pools",
+	}, nil)
+	if err != nil {
+		return err
+	}
+
+	regionUrlEncode, err := std.Urlencode(ctx, &std.UrlencodeArgs{
+		Input: "/project/region",
+	}, nil)
+	if err != nil {
+		return err
+	}
+
+	workerPoolQuota, err := serviceusage.NewConsumerQuotaOverride(ctx, "worker-pool-quota", &serviceusage.ConsumerQuotaOverrideArgs{
+		Project:       pulumi.String(a.GcpConfig.ProjectId),
+		Service:       pulumi.String("cloudbuild.googleapis.com"),
+		Metric:        pulumi.String(metricUrlEncode.Result),
+		Limit:         pulumi.String(regionUrlEncode.Result),
+		OverrideValue: pulumi.String("1"),
+		Force:         pulumi.Bool(true),
+		Dimensions: pulumi.StringMap{
+			"region": pulumi.String(a.Region),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	a.cloudBuildWorkerPool, err = workerpool.NewWorkerPool(ctx, "cloud-build-worker-pool", &workerpool.WorkerPoolArgs{
 		Name:     pulumi.String("cloud-build-worker-pool"),
 		Location: pulumi.String(a.Region),
@@ -465,7 +496,7 @@ func (a *NitricGcpPulumiProvider) createCloudSQLDatabase(ctx *pulumi.Context) er
 			PeeredNetwork:        a.privateNetwork.ID(),
 			PeeredNetworkIpRange: pulumi.String("/29"),
 		},
-	}, pulumi.DependsOn([]pulumi.Resource{privateVpcConnection}))
+	}, pulumi.DependsOn([]pulumi.Resource{privateVpcConnection, workerPoolQuota}))
 	if err != nil {
 		return err
 	}

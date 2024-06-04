@@ -696,6 +696,8 @@ github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1 h1:PUH/sUbJmBmHjNFNthJ/dW2+riFuJV0Fh
 github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1/go.mod h1:OmZeji3dNMwB1qldAlaQfcfJPc2BaZyweVGH7Ej4SJg=
 github.com/pulumi/pulumi-random/sdk/v4 v4.8.2 h1:ZlXB3mx1YvAjs+jm59rcpvfl1J7dpLOBOxUb5vEPkZk=
 github.com/pulumi/pulumi-random/sdk/v4 v4.8.2/go.mod h1:czSwj+jZnn/VWovMpTLUs/RL/ZS4PFHRdmlXrkvHqeI=
+github.com/pulumi/pulumi-std/sdk v1.6.2 h1:0D1jd9Uz9heQ3cvXlgngL/nhd2/TIA2OOot3WA299NU=
+github.com/pulumi/pulumi-std/sdk v1.6.2/go.mod h1:/IWQsZBpL8EZCiBdgCpei2DVjOfcx93peg0QmNu+WKY=
 github.com/pulumi/pulumi/sdk/v3 v3.114.0 h1:KPBSvm04wE2/AdS8PlABxZAW4o7pSAnar0QOooH13no=
 github.com/pulumi/pulumi/sdk/v3 v3.114.0/go.mod h1:d6LZJHqEfpgXUd8rFSSsbaPJcocZObXeaUr87jbA5MY=
 github.com/quasilyte/go-ruleguard v0.4.0 h1:DyM6r+TKL+xbKB4Nm7Afd1IQh9kEUKQs2pboWGKtvQo=

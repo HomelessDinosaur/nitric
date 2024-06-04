@@ -1,8 +1,8 @@
 module github.com/nitrictech/nitric/cloud/gcp
 
-go 1.21.3
+go 1.21.5
 
-toolchain go1.21.4
+toolchain go1.21.10
 
 replace (
 	github.com/nitrictech/nitric/cloud/common v0.0.0-20230430232207-a0e427e2d646 => ../common
@@ -11,6 +11,7 @@ replace (
 
 require (
 	cloud.google.com/go/apigateway v1.6.6
+	cloud.google.com/go/cloudbuild v1.16.1
 	cloud.google.com/go/cloudtasks v1.12.7
 	cloud.google.com/go/firestore v1.15.0
 	cloud.google.com/go/pubsub v1.37.0
@@ -31,6 +32,7 @@ require (
 	github.com/onsi/gomega v1.28.1
 	github.com/pkg/errors v0.9.1
 	github.com/pulumi/pulumi-gcp/sdk/v6 v6.67.1
+	github.com/pulumi/pulumi-std/sdk v1.6.2
 	github.com/pulumi/pulumi/sdk/v3 v3.114.0
 	github.com/samber/lo v1.38.1
 	github.com/uw-labs/lichen v0.1.7
@@ -92,7 +94,6 @@ require (
 	cloud.google.com/go v0.112.2 // indirect
 	cloud.google.com/go/auth v0.3.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	cloud.google.com/go/cloudbuild v1.16.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/longrunning v0.5.6 // indirect
