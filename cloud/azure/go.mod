@@ -29,21 +29,23 @@ require (
 	github.com/onsi/gomega v1.28.1
 	github.com/pkg/errors v0.9.1
 	github.com/pulumi/pulumi-aws/sdk/v5 v5.35.0
-	github.com/pulumi/pulumi-azure-native-sdk/apimanagement v1.92.0
+	github.com/pulumi/pulumi-azure-native-sdk/apimanagement/v2 v2.44.0
 	github.com/pulumi/pulumi-azure-native-sdk/app v1.92.0
 	github.com/pulumi/pulumi-azure-native-sdk/authorization v1.92.0
+	github.com/pulumi/pulumi-azure-native-sdk/containerinstance/v2 v2.44.0
 	github.com/pulumi/pulumi-azure-native-sdk/containerregistry v1.92.0
 	github.com/pulumi/pulumi-azure-native-sdk/dbforpostgresql/v2 v2.39.0
 	github.com/pulumi/pulumi-azure-native-sdk/eventgrid v1.101.0
 	github.com/pulumi/pulumi-azure-native-sdk/keyvault v1.92.0
 	github.com/pulumi/pulumi-azure-native-sdk/managedidentity v1.92.0
+	github.com/pulumi/pulumi-azure-native-sdk/network/v2 v2.44.0
 	github.com/pulumi/pulumi-azure-native-sdk/operationalinsights v1.92.0
 	github.com/pulumi/pulumi-azure-native-sdk/resources v1.92.0
 	github.com/pulumi/pulumi-azure-native-sdk/storage v1.92.0
 	github.com/pulumi/pulumi-azure/sdk/v4 v4.42.0
 	github.com/pulumi/pulumi-azuread/sdk/v5 v5.33.0
 	github.com/pulumi/pulumi-random/sdk/v4 v4.8.2
-	github.com/pulumi/pulumi/sdk/v3 v3.112.0
+	github.com/pulumi/pulumi/sdk/v3 v3.118.0
 	github.com/samber/lo v1.38.1
 	github.com/uw-labs/lichen v0.1.7
 	github.com/valyala/fasthttp v1.45.0
@@ -142,7 +144,7 @@ require (
 	github.com/go-critic/go-critic v0.11.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
-	github.com/go-git/go-git/v5 v5.11.0 // indirect
+	github.com/go-git/go-git/v5 v5.12.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -265,7 +267,7 @@ require (
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
 	github.com/pulumi/esc v0.6.2 // indirect
 	github.com/pulumi/pulumi-azure-native-sdk v1.101.0 // indirect
-	github.com/pulumi/pulumi-azure-native-sdk/v2 v2.39.0 // indirect
+	github.com/pulumi/pulumi-azure-native-sdk/v2 v2.44.0 // indirect
 	github.com/pulumi/pulumi-docker/sdk/v4 v4.1.0 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.0 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
@@ -336,17 +338,16 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.22.0 // indirect
+	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231219180239-dc181d75b848 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.20.0 // indirect
+	golang.org/x/mod v0.15.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/term v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

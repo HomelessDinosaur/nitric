@@ -83,7 +83,7 @@ var (
 	// Alphanumerics and hyphens, Start with letter and end with alphanumeric.
 	ApiOperationPolicyRT = ResourceType{Abbreviation: "api-op-pol", MaxLen: 80, AllowUpperCase: true, AllowHyphen: true, UseName: true}
 	// Lowercase letters and numbers.
-	DatabaseServer = ResourceType{Abbreviation: "pg-svr", MaxLen: 24}
+	DatabaseServerRT = ResourceType{Abbreviation: "pg-svr", MaxLen: 24}
 )
 
 // cleanNameSegment removes all non-alphanumeric characters from a string.
