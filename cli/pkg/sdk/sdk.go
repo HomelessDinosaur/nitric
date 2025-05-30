@@ -18,6 +18,39 @@ const (
 	Typescript
 )
 
+type SDKTemplateData struct {
+	Package    string
+	ImportPath string
+	Buckets    []BucketTemplateData
+}
+
+type BucketTemplateData struct {
+	Name string
+	ID   string
+}
+
+func AppSpecToTemplateData(appSpec schema.Application) SDKTemplateData {
+	buckets := []BucketTemplateData{}
+	for name, resource := range appSpec.Resources {
+
+		if resource.Type != "bucket" {
+			continue
+		}
+
+		buckets = append(buckets, BucketTemplateData{
+			Name: name,
+			ID:   name,
+		})
+	}
+
+	return SDKTemplateData{
+		// TODO: use something better
+		Package: appSpec.Name,
+		// ImportPath: ,
+		Buckets: buckets,
+	}
+}
+
 // Convert string to Language enum
 func StringToLanguage(lang string) (Language, error) {
 	switch lang {
@@ -63,7 +96,7 @@ func GenerateSDKs(fs afero.Fs, appSpec schema.Application, outPath string, langs
 		case Go:
 			return GenerateGoSDK(fs, appSpec, outPath)
 		case Python:
-			return errors.New("python SDK generation not implemented")
+			return GeneratePythonSDK(fs, appSpec, outPath)
 		case Javascript:
 			return errors.New("javascript SDK generation not implemented")
 		case Typescript:

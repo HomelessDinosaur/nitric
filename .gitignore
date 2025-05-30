@@ -25,3 +25,5 @@ tools/protoc*.zip
 tools/readme.txt
 
 *.coverprofile
+
+.DS_Store

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package nitric.proto.pubsub.v1;
+package nitric.proto.pubsub.v2;
 
 // protoc plugin options for code generation
 option go_package = "github.com/nitrictech/nitric/proto/pubsub/v2;pubsubpb";
