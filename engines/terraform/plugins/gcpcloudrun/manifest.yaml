@@ -5,7 +5,7 @@ required_identities:
   - gcp:iam:role
 deployment:
   # NOTE: // is required to reference a sub-path of repository for terraform modules
-  terraform: github.com/nitrictech/nitric//engines/terraform/plugins/gcpcloudrun/module?depth=1&ref=next
+  terraform: github.com/HomelessDinosaur/nitric//engines/terraform/plugins/gcpcloudrun/module?depth=1&ref=gcp-cloud-test
 runtime:
   go_module: github.com/nitrictech/nitric/engines/terraform/plugins/gcpcloudrun
 

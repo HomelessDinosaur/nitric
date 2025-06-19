@@ -66,6 +66,8 @@ func (s *cloudStorage) getBucketByName(bucket string) (*storage.BucketHandle, er
 			if b.Name == bucketName {
 				s.cache[b.Name] = s.client.Bucket(b.Name)
 			}
+
+			fmt.Println(b.Name)
 		}
 	}
 
