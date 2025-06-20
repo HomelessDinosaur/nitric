@@ -73,7 +73,7 @@ func Start(cmd string) {
 	runCmd.Stdout = os.Stdout
 	runCmd.Stderr = os.Stderr
 
-	servicePort := os.Getenv("NITRIC_GUEST_PORT")
+	servicePort := os.Getenv("PORT")
 	if servicePort == "" {
 		servicePort = os.Getenv("PORT")
 	} else {
