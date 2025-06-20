@@ -15,8 +15,8 @@ locals {
 
   default_origin = length(local.root_origins) > 0 ? keys(local.root_origins)[0] : keys(var.nitric.origins)[0]
 
-  service_origins = {for key, val in local.nitric.origins: key => val if val.type == "service"}
-  bucket_origins = {for key, val in local.nitric.origins: key => val if val.type == "bucket"}
+  service_origins = {for key, val in var.nitric.origins: key => val if val.type == "service"}
+  bucket_origins = {for key, val in var.nitric.origins: key => val if val.type == "bucket"}
 }
 
 
@@ -58,9 +58,10 @@ resource "google_compute_region_network_endpoint_group" "service_negs" {
 resource "google_compute_backend_service" "service_backends" {
   for_each = local.service_origins
 
-  name     = "${each.key}-service-bs"
-  protocol = "HTTPS"
   project = var.project_id
+
+  name     = "${provider::corefunc::str_kebab(each.key)}-service-bs"
+  protocol = "HTTPS"
   enable_cdn  = false
 
   backend {
@@ -94,7 +95,9 @@ resource "google_storage_bucket_iam_binding" "website_bucket_iam" {
 resource "google_compute_backend_bucket" "website_backends" {
   for_each = local.bucket_origins
 
-  name        = "${each.key}-site-bucket"
+  project = var.project_id
+
+  name        = "${provider::corefunc::str_kebab(each.key)}-site-bucket"
   bucket_name = data.google_storage_bucket.bucket[each.key].name
   enable_cdn  = true
 }
