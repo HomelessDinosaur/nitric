@@ -31,8 +31,6 @@ func (a *gcpcloudappService) Start(proxy service.Proxy) error {
 		return fmt.Errorf("PORT environment variable not set")
 	}
 
-	fmt.Println(os.Environ())
-
 	fmt.Printf("Starting Cloud Run service proxy on port %s\n", port)
 	return http.ListenAndServe(fmt.Sprintf(":%s", port), mux)
 }
