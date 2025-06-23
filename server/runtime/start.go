@@ -80,6 +80,10 @@ func Start(cmd string) {
 		runCmd.Env = append(runCmd.Env, fmt.Sprintf("PORT=%s", servicePort))
 	}
 
+	if servicePort == "" {
+		log.Fatalf("PORT environment variable not set")
+	}
+
 	if err := runCmd.Start(); err != nil {
 		log.Fatalf("failed to start service: %v", err)
 	}
